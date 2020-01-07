@@ -1,4 +1,4 @@
- AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 1 - 1/7/2020 14:18:51
+ AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 1 - 1/7/2020 15:50:22
 Tiny-Basic51 - Modified for Macro Assembler AS
 
 
@@ -1817,7 +1817,7 @@ Tiny-Basic51 - Modified for Macro Assembler AS
     1788/     5DB : 64 22               	XRL	A,#'"'
     1789/     5DD : 60 08               	JZ	TSTS_1
     1790/     5DF :                     ;	XRL	A,#'''' XOR '"'
-    1791/     5DF : 64 05               	XRL	A,#5
+    1791/     5DF : 64 05               	XRL	A,#(22h ! 27h)
     1792/     5E1 : 60 04               	JZ	TSTS_1
     1793/     5E3 : C3                  	CLR	C
     1794/     5E4 : D2 49               	SETB	CHAR_FLG
@@ -3176,7 +3176,7 @@ Tiny-Basic51 - Modified for Macro Assembler AS
     3027/     C99 : 80                  	DB	80H		;Marks end of program.
     3028/     C9A :                     ;
     3029/     C9A :                     	END
- AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 2 - 1/7/2020 14:18:51
+ AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 2 - 1/7/2020 15:50:22
 Tiny-Basic51 - Modified for Macro Assembler AS
 
 
@@ -3397,7 +3397,7 @@ Tiny-Basic51 - Modified for Macro Assembler AS
  TERM_4 :                       B6C C | *TF0 :                           8D B |
 *TF1 :                           8F B | *TH0 :                           8C D |
  TH1 :                           8D D |  TI :                            99 B |
-*TIME :                    14:18:51 - | *TL0 :                           8A D |
+*TIME :                    15:50:22 - | *TL0 :                           8A D |
 *TL1 :                           8B D |  TMOD :                          89 D |
  TMP0 :                           8 D |  TMP1 :                           9 D |
  TMP2 :                           A D |  TMP3 :                           B D |
@@ -3424,7 +3424,7 @@ Tiny-Basic51 - Modified for Macro Assembler AS
     473 symbols
      91 unused symbols
 
- AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 3 - 1/7/2020 14:18:51
+ AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 3 - 1/7/2020 15:50:22
 Tiny-Basic51 - Modified for Macro Assembler AS
 
 
@@ -3441,7 +3441,7 @@ TSTV_                                 | USING
 
      14 macros
 
- AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 4 - 1/7/2020 14:18:51
+ AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 4 - 1/7/2020 15:50:22
 Tiny-Basic51 - Modified for Macro Assembler AS
 
 
@@ -3459,7 +3459,7 @@ PNTR_L     = R0
 AND        = &
 OR         = |
 
- AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 5 - 1/7/2020 14:18:51
+ AS V1.42 Beta [Bld 32] - source file tb51as23.asm - page 5 - 1/7/2020 15:50:22
 Tiny-Basic51 - Modified for Macro Assembler AS
 
 

@@ -1788,7 +1788,7 @@ TSTS:	CALL	READ_CHAR
 	XRL	A,#'"'
 	JZ	TSTS_1
 ;	XRL	A,#'''' XOR '"'
-	XRL	A,#5
+	XRL	A,#(27h ! 22h)
 	JZ	TSTS_1
 	CLR	C
 	SETB	CHAR_FLG
