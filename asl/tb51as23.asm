@@ -1,9 +1,15 @@
-	$MOD51
-        $NODEBUG
-	$PAGEWIDTH	(80)
-	$PAGELENGTH	(66)
-        $TITLE          (Tiny-Basic51 - Modified for Metalink ASM51)
+;	$MOD51
+	CPU	8051
+	include	stddef51.inc
+;       $NODEBUG
+;	$PAGEWIDTH	(80)
+;	$PAGELENGTH	(66)
+	page	0
+;       $TITLE          (Tiny-Basic51 - Modified for Metalink ASM51)
+	title	"Tiny-Basic51 - Modified for Macro Assembler AS"
 
+#define	OR	|
+#define	AND	&
 
 LIT_    MACRO   K
 	CALL	LIT
@@ -197,16 +203,23 @@ AESLEN	EQU	36		;AES Length.
 ;
 ;	Working Register Definitions.
 ;
-PNTR_L	EQU	R0		;Program buffer pointer.
-DEST_L	EQU	R1		;Destination pointer for line insertion.
-PNTR_H	EQU	R2		;High-order pointer byte (temp. cursor)
-DEST_H	EQU	R3
-CHAR	EQU	R4		;BASIC source string character being parsed.
-LP_CNT	EQU	R5
-TOS_L	EQU	R6
-TOS_H	EQU	R7		;Variable popped from stack for math routines.
+#define	PNTR_L	R0
+		;Program buffer pointer.
+#define	DEST_L	R1
+		;Destination pointer for line insertion.
+#define	PNTR_H	R2
+		;High-order pointer byte (temp. cursor)
+#define	DEST_H	R3
+
+#define	CHAR	R4
+		;BASIC source string character being parsed.
+#define	LP_CNT	R5
+
+#define	TOS_L	R6
+#define	TOS_H	R7
+		;Variable popped from stack for math routines.
 ;
-	DSEG
+	segment	DATA
 	ORG	08H
 ;
 ;	Temporary variables used by IDIV routine.
@@ -230,16 +243,18 @@ STRLEN:	DS	1		;Length of text string in L_BUF.
 NO_VAR	EQU	12		;Allow 12 internal variables A - L.
 US_VAR:	DS	2*NO_VAR	;Allocate variable storage space.
 ;
-MODE:	DS	1		;Operating mode bits.
+MODE:	SFR	$
+	DS	1		;Operating mode bits.
 EXTVAR	BIT	MODE.0		;Set when BASIC variables in external RAM.
 ROMMOD	BIT	MODE.1		;Set when BASIC programs executed from ROM.
 EXTMOD	BIT	MODE.2		;Set when BASIC programs fetched externally.
 RUNMOD	BIT	MODE.3		;Set when stored BASIC program is running.
 HEXMOD	BIT	MODE.4		;Set when operations should use HEX radix.
 ;
-FLAGS:	DS	1		;Interroutine communication flags.
+FLAGS:	SFR	$
+	DS	1		;Interroutine communication flags.
 ZERSUP	BIT	FLAGS.0		;If set, suppress printing leading zeroes.
-CHAR_FLG  BIT	FLAGS.1		;Set when CHAR has not been processed.
+CHAR_FLG	BIT	FLAGS.1		;Set when CHAR has not been processed.
 SGN_FLG	BIT	FLAGS.2		;Keeps track of operand(s) sign during math.
 SEQ_FLG	BIT	FLAGS.3		;
 MOD_FLG	BIT	FLAGS.4		;Set if divide routine should return MOD value.
@@ -273,8 +288,8 @@ BEL	EQU	07H		;  "    "    "  <BELL>.
 ;$EJECT
 ;$SAVE NOGEN
 ;
-	CSEG
-	ORG	0000H
+	segment	CODE
+	ORG	0
 	JMP	S_INIT		;Jump to system initialization routine.
 ;
 ;	Interrupt routine expansion hooks:
@@ -324,8 +339,8 @@ BAUDID:	DJNZ	R0,$
 	JNB	RXD,$
 	SETB	TR1
 	CALL	STROUT
-        DB      CR,'MCS-51 TINY BASIC/Metalink-Compatible Source V'
-        DB      ('0'+VERS/10H),'.',('0'+(VERS AND 0FH)),(CR OR 80H)
+        DB      CR,"MCS-51 TINY BASIC/Metalink-Compatible Source V"
+        DB      ('0'+VERS/10H),".",('0'+(VERS AND 0FH)),(CR OR  80H)
 	JMP	START
 ;
 RUNROM:	SETB	EXTMOD
@@ -419,7 +434,7 @@ NIBO_1:	MOVC	A,@A+PC		;Look up corresponding code.
 	CALL	C_OUT		;Output character.
 NIBO_3:	RET
 ;
-ASCTBL:	DB	'0123456789ABCDEF'
+ASCTBL:	DB	"0123456789ABCDEF"
 ;
 ;=======
 ;
@@ -451,14 +466,14 @@ ERROUT:
 ;
 ;EXP_ER	Expression evaluation error.
 EXP_ER:	CALL	STROUT		;Output error message.
-        DB      'HOW?',(CR OR 80H)
+        DB      "HOW?",(CR OR 80H)
 	JMP	ERROUT		;Return to executive.
 ;
 ;=======
 ;
 ;AES_ER	Arithmetic expression stack error handling routine.
 AES_ER:	CALL	STROUT		;Output error message.
-        DB      'SORRY!',(CR OR 80H)
+        DB      "SORRY!",(CR OR 80H)
 	JMP	ERROUT		;Return to executive.
 ;
 ;
@@ -466,7 +481,7 @@ AES_ER:	CALL	STROUT		;Output error message.
 ;
 ;SYN_ER	Syntax error handling routine.
 SYN_ER:	CALL	STROUT		;Output error message.
-        DB      CR,'WHAT?',(CR OR 80H)
+        DB      CR,"WHAT?",(CR OR 80H)
 	JMP	ERROUT		;Process error.
 ;
 ;=======
@@ -808,7 +823,7 @@ STRVAR:	MOV	A,TOS_L
 	RET
 ;
 STREXT:	MOV	R1,A
-DD001:  MOV     P2,#HIGH(EXTRAM)
+DD001:  MOV     P2,#(EXTRAM >> 8)
         MOV     A,TMP0
 	MOVX	@R1,A
 	INC	R1		;Bump pointers.
@@ -914,7 +929,7 @@ FETVAR:	MOV	A,TOS_L
 ;===
 ;
 FETEXT:	MOV	R1,A		;Index to variable storage array.
-DD002:  MOV     P2,#HIGH(EXTRAM)
+DD002:  MOV     P2,#(EXTRAM >> 8)
         MOVX    A,@R1           ;Load low-order byte of variable.
 	MOV	TOS_L,A		;And store on AES.
 	INC	R1		;Bump pointers.
@@ -1345,11 +1360,11 @@ RND:
 	MOV	TOS_L,SEED_L
 	MOV	TOS_H,SEED_H
 	CALL	PUSH_TOS
-        MOV     TOS_L,#LOW(25173)
-        MOV     TOS_H,#HIGH(25173)
+        MOV     TOS_L,#(25173 & 0ffh)
+        MOV     TOS_H,#(25173 >> 8)
 	CALL	MUL_16
-        MOV     TOS_L,#LOW(13849)
-        MOV     TOS_H,#HIGH(13849)
+        MOV     TOS_L,#(13849 & 0ffh)
+        MOV     TOS_H,#(13849 >> 8)
 	MOV	R1,AESP
 	DEC	R1
 	CALL	ADD_16
@@ -1363,8 +1378,8 @@ RND:
 	cjne	tos_l,#0,no_problem
 	cjne	tos_h,#80h,no_problem
 big_problem:				   ; tos=8000h will generate an overflow
-	mov	tos_l,#low(12586)          ; when control gets to iabs.
-	mov	tos_h,#high(12586)         ; Load the precalculated seed.
+	mov	tos_l,#(12586 & 0ffh)      ; when control gets to iabs.
+	mov	tos_h,#(12586 >> 8)        ; Load the precalculated seed.
 no_problem:
 	MOV	SEED_L,TOS_L
 	MOV	SEED_H,TOS_H
@@ -1453,17 +1468,17 @@ PUSH_C:	CLR	A
 ;
 REWIND:	CLR	CHAR_FLG
 	JB	ROMMOD,REWROM
-        MOV     PNTR_H,#HIGH(EXTRAM)
-        MOV     PNTR_L,#LOW(EXTRAM)
+        MOV     PNTR_H,#(EXTRAM >> 8)
+        MOV     PNTR_L,#(EXTRAM & 0ffh)
 	RET
 ;
 REWROM:	JB	EXTMOD,RWXROM
-        MOV     PNTR_H,#HIGH(INTROM)
-        MOV     PNTR_L,#LOW(INTROM)
+        MOV     PNTR_H,#(INTROM >> 8)
+        MOV     PNTR_L,#(INTROM & 0ffh)
 	RET
 ;
-RWXROM: MOV     PNTR_H,#HIGH(EXTROM)
-        MOV     PNTR_L,#LOW(EXTROM)
+RWXROM: MOV     PNTR_H,#(EXTROM >> 8)
+        MOV     PNTR_L,#(EXTROM & 0ffh)
 	RET
 ;
 ;=======
@@ -1678,28 +1693,28 @@ NOTVAR:	CALL	LOAD_PNTR
 	SETB	CHAR_FLG
 ;*        %TST    (TSTRBI,DBYTE)  ;Test if direct byte token.
         call   tst
-        db      'DBYT',('E' OR 80H)
+        DB      "DBYT",('E' OR 80H)
         jnc     tstrbi
         LIT_    1
 	SJMP	INDEX
 ;
 ;*TSTRBI: %TST    (TSTXBY,RBIT)
 tstrbi: call   tst
-        db      'RBI',('T' OR 80H)
+        DB      "RBI",('T' OR 80H)
         jnc     tstxby
         LIT_    2
 	SJMP	INDEX
 ;
 ;*TSTXBY: %TST    (TSTCBY,XBYTE)  ;Test if expansion RAM byte token.
 tstxby: call   tst
-        db      'XBYT',('E' OR 80H)
+        DB      "XBYT",('E' OR 80H)
         jnc     tstcby
         LIT_    3
 	SJMP	INDEX
 ;
 ;*TSTCBY: %TST    (NOTSYM,CBYTE)  ;Test if program memory byte token.
 tstcby: call   tst
-        db      'CBYT',('E' OR 80H)
+        DB      "CBYT",('E' OR 80H)
         jnc     notsym
         LIT_    4
 INDEX:	CALL	VAR
@@ -1772,7 +1787,8 @@ TSTS:	CALL	READ_CHAR
 	MOV	TMP0,A
 	XRL	A,#'"'
 	JZ	TSTS_1
-	XRL	A,#'''' XOR '"'
+;	XRL	A,#'''' XOR '"'
+	XRL	A,#5
 	JZ	TSTS_1
 	CLR	C
 	SETB	CHAR_FLG
@@ -2073,7 +2089,7 @@ RAM_INIT:
 	CLR	A		;Many bytes to be cleared...
 	MOV	MODE,A		;Interactive mode, decimal radix.
 	MOV	FLAGS,A		;Interroutine flags.
-DD010:  MOV     P2,#HIGH(EXTRAM);Select first External RAM page.
+DD010:  MOV     P2,#(EXTRAM >> 8);Select first External RAM page.
         MOV     R0,A
 	MOV	A,#5AH		;Random bit pattern.
 	MOVX	@R0,A
@@ -2104,7 +2120,7 @@ INIT_3:	RET
 ;
 ;
 INIT:	CALL	RAM_INIT
-        MOV     R0,#LOW(EXTRAM)
+        MOV     R0,#(EXTRAM & 0ffh)
 	MOV	A,#0FFH
 	MOVX	@R0,A
 	RET
@@ -2203,7 +2219,7 @@ OPEN_4:	MOV	A,STRLEN	;Number of bytes needed for BASIC text.
 	CLR	A
 	ADDC	A,PNTR_H
 	MOV	DEST_H,A
-        CJNE    A,#HIGH(RAMLIM),OPEN_1
+        CJNE    A,#(RAMLIM >> 8),OPEN_1
 	JMP	AES_ER
 ;
 ;	Transfer characters from source back to destination
@@ -2464,7 +2480,7 @@ ERRENT:	CLR	RUNMOD
 	MOV	SP,#SP_BASE	;Re-initialize hardware stack.
 	MOV	AESP,#AES-1	;Initialize AES pointer.
 CONT:	CALL	STROUT
-        DB      'OK',(CR OR 80H)
+        DB      "OK",(CR OR 80H)
 CONT_1: CALL    GETLN          ;Receive interactive command line.
 	CALL	D_BLNK
         TSTL_   TOKEN
@@ -2486,7 +2502,7 @@ TOKEN:	CALL	CNTRL
 ;
 ;*S0:     %TST    (S1,LET)                ;Parse explicit LET command.
 s0:     call   tst
-        db      'LE',('T' OR 80H)
+        DB      "LE",('T' OR 80H)
         jnc     s1
         TSTV_   CMD_NG
 ;*        %TST    (CMD_NG,=)
@@ -2515,7 +2531,7 @@ SE4:    CALL    DONE           ;Process implied PRINT command.
 ;
 ;*S1:     %TST    (S2,GOTO)               ;Parse GOTO command.
 s1:     call   tst
-        db      'GOT',('O' OR 80H)
+        DB      "GOT",('O' OR 80H)
         jnc     s2
         ICALL_  EXPR
         CALL    LNDONE
@@ -2525,7 +2541,7 @@ s1:     call   tst
 ;
 ;*S2:     %TST    (S3,GOSUB)              ;Parse GOSUB command.
 s2:     call   tst
-        db      'GOSU',('B' OR 80H)
+        DB      "GOSU",('B' OR 80H)
         jnc     s3
         CALL    SAV
         ICALL_  EXPR
@@ -2536,7 +2552,7 @@ s2:     call   tst
 ;
 ;*S3:     %TST    (S8,PRINT)              ;Parse PRINT command.
 s3:     call   tst
-        db      'PRIN',('T' OR 80H)
+        DB      "PRIN",('T' OR 80H)
         jnc     s8
         IFDONE_ S6B
 ;*S3A:    %TST    (S3B,;)
@@ -2583,7 +2599,7 @@ s8:     call   tst
         ICALL_  EXPR
 ;*        %TST    (S8A,THEN)
         call   tst
-        db      'THE',('N' OR 80H)
+        DB      "THE",('N' OR 80H)
         jnc     s8a
 S8A:    COND_   S8B
         IJMP_   TOKEN         ;Continue parsing command.
@@ -2595,7 +2611,7 @@ S8B:    CALL    SKPTXT
 ;
 ;*S9:     %TST    (S12,INPUT)             ;Parse INPUT command.
 s9:     call   tst
-        db      'INPU',('T' OR 80H)
+        DB      "INPU",('T' OR 80H)
         jnc     s12
 S10:    TSTS_   S10B
         TSTV_   S10D
@@ -2623,7 +2639,7 @@ S11:    CALL    DONE
 ;
 ;*S12:    %TST    (S13,RETURN)            ;Parse RETURN command.
 s12:    call   tst
-        db      'RETUR',('N' OR 80H)
+        DB      "RETUR",('N' OR 80H)
         jnc     s13
         CALL    LNDONE
         JMP     RSTR
@@ -2632,7 +2648,7 @@ s12:    call   tst
 ;
 ;*S13:    %TST    (S13A,CALL)             ;Machine language CALL.
 s13:    call   tst
-        db      'CAL',('L' OR 80H)
+        DB      "CAL",('L' OR 80H)
         jnc     s13a
         ICALL_  EXPR
         CALL    LNDONE
@@ -2643,7 +2659,7 @@ s13:    call   tst
 ;
 ;*S13A:   %TST    (S13B,FOR)
 s13a:   call   tst
-        db      'FO',('R' OR 80H)
+        DB      "FO",('R' OR 80H)
         jnc     s13b
         TSTV_   FOR_ER
 ;*        %TST    (FOR_ER,=)
@@ -2665,7 +2681,7 @@ s13a:   call   tst
 ;
 ;*S13B:   %TST    (S13C,NEXT)
 s13b:   call   tst
-        db      'NEX',('T' OR 80H)
+        DB      "NEX",('T' OR 80H)
         jnc     s13c
         TSTV_   FOR_ER
         CALL    DONE
@@ -2689,7 +2705,7 @@ FOR_ER: IJMP_   CMD_NG
 ;
 ;*S13C:   %TST    (S14,END)               ;Parse END command.
 s13c:   call   tst
-        db      'EN',('D' OR 80H)
+        DB      "EN",('D' OR 80H)
         jnc     s14
         CALL    LNDONE
         JMP     FIN
@@ -2698,7 +2714,7 @@ s13c:   call   tst
 ;
 ;*S14:    %TST    (S15,LIST)              ;Parse LIST command.
 s14:    call   tst
-        db      'LIS',('T' OR 80H)
+        DB      "LIS",('T' OR 80H)
         jnc     s15
         IFDONE_ S14B
         ICALL_  EXPR
@@ -2713,7 +2729,7 @@ S14B:   CALL    LST
 ;
 ;*S15:    %TST    (S16,RUN)               ;Parse LIST command.
 s15:    call   tst
-        db      'RU',('N' OR 80H)
+        DB      "RU",('N' OR 80H)
         jnc     s16
         CALL    LNDONE
         IJMP_   XEC
@@ -2722,7 +2738,7 @@ s15:    call   tst
 ;
 ;*S16:    %TST    (S16A,NEW)
 s16:    call   tst
-        db      'NE',('W' OR 80H)
+        DB      "NE",('W' OR 80H)
         jnc     s16a
         CALL    DONE
         IJMP_   START
@@ -2730,7 +2746,7 @@ s16:    call   tst
 ;=======
 ;*S16A:   %TST    (S17,RESET)
 s16a:   call   tst
-        db      'RESE',('T' OR 80H)
+        DB      "RESE",('T' OR 80H)
         jnc     s17
         CALL    DONE
 	JMP	0000H
@@ -2739,7 +2755,7 @@ s16a:   call   tst
 ;
 ;*S17:    %TST    (S17A,ROM)
 s17:    call   tst
-        db      'RO',('M' OR 80H)
+        DB      "RO",('M' OR 80H)
         jnc     s17a
         CALL    DONE
 	SETB	ROMMOD
@@ -2748,7 +2764,7 @@ s17:    call   tst
 ;
 ;*S17A:   %TST    (S17B,RAM)
 s17a:   call   tst
-        db      'RA',('M' OR 80H)
+        DB      "RA",('M' OR 80H)
         jnc     s17b
         CALL    DONE
 	CLR	ROMMOD
@@ -2756,7 +2772,7 @@ s17a:   call   tst
 ;
 ;*S17B:   %TST    (S17C,PROM)
 s17b:   call   tst
-        db      'PRO',('M' OR 80H)
+        DB      "PRO",('M' OR 80H)
         jnc     s17c
         CALL    DONE
 	SETB	ROMMOD
@@ -2765,7 +2781,7 @@ s17b:   call   tst
 ;
 ;*S17C:   %TST    (S18,HEX)
 s17c:   call   tst
-        db      'HE',('X' OR 80H)
+        DB      "HE",('X' OR 80H)
         jnc     s18
         CALL    DONE
 	SETB	HEXMOD
@@ -2773,7 +2789,7 @@ s17c:   call   tst
 ;
 ;*S18:    %TST    (S19,DECIMAL)
 s18:    call   tst
-        db      'DECIMA',('L' OR 80H)
+        DB      "DECIMA",('L' OR 80H)
         jnc     s19
         CALL    DONE
 	CLR	HEXMOD
@@ -2781,7 +2797,7 @@ s18:    call   tst
 ;
 ;*S19:    %TST    (S20,REM)
 s19:    call   tst
-        db      'RE',('M' OR 80H)
+        DB      "RE",('M' OR 80H)
         jnc     s20
         CALL    SKPTXT
         IJMP_   STMT
@@ -2827,7 +2843,7 @@ e3:     call   tst
 ;
 ;*E4:     %TST    (E5,XOR)
 e4:     call   tst
-        db      'XO',('R' OR 80H)
+        DB      "XO",('R' OR 80H)
         jnc     e5
         ICALL_  TERM
 	CALL	IXOR
@@ -2856,7 +2872,7 @@ term_1: call   tst
 ;
 ;*TERM_2: %TST    (TERM_3,AND)
 term_2: call   tst
-        db      'AN',('D' OR 80H)
+        DB      "AN",('D' OR 80H)
         jnc     term_3
         ICALL_  FACT
 	CALL	IAND
@@ -2864,7 +2880,7 @@ term_2: call   tst
 ;
 ;*TERM_3: %TST    (TERM_4,MOD)
 term_3: call   tst
-        db      'MO',('D' OR 80H)
+        DB      "MO",('D' OR 80H)
         jnc     term_4
         ICALL_  FACT
 	CALL	IMOD
@@ -2884,7 +2900,7 @@ fact:   call   tst
 ;
 ;*FACT_1: %TST    (VAR,NOT)
 fact_1: call   tst
-        db      'NO',('T' OR 80H)
+        DB      "NO",('T' OR 80H)
         jnc     var
         ICALL_  VAR
 	CALL	ICPL
@@ -2902,7 +2918,7 @@ VAR_0:  TSTN_   VAR_1
 ;
 ;*VAR_1:  %TST    (VAR_1A,RND)
 var_1:  call   tst
-        db      'RN',('D' OR 80H)
+        DB      "RN",('D' OR 80H)
         jnc     var_1a
         CALL    RND
         ICALL_  VAR_2
@@ -2913,7 +2929,7 @@ var_1:  call   tst
 ;
 ;*VAR_1A: %TST    (VAR_2,ABS)
 var_1a: call   tst
-        db      'AB',('S' OR 80H)
+        DB      "AB",('S' OR 80H)
         jnc     var_2
         ICALL_  VAR_2
 	CALL	IABS
@@ -2921,12 +2937,12 @@ var_1a: call   tst
 ;
 ;*VAR_2:  %TST    (SYN_NG,%1()
 var_2:  call   tst
-        db      ('(' OR 80H)            ;to match TB51.LST
+        db      '(' OR 80H              ;to match TB51.LST
         jnc     syn_ng
         ICALL_  EXPR
 ;*        %TST    (SYN_NG,%1))
         call   tst
-        db      (')' OR 80H)            ;to match TB51.LST
+        db      ')' OR 80H              ;to match TB51.LST
         jnc     syn_ng
         RET
 ;
@@ -2999,15 +3015,15 @@ REL_6:	CLR	C
 INTROM:				;Start of ROM program buffer.
 ;$INCLUDE(TBACEY.SRC)
         dw      2101
-        db      'PR."Hello"',CR
+        db      "PR.\"Hello\"",CR
         dw      2102
-        db      'PR."This is being run under Tiny Basic V2.3"',CR
+        db      "PR.\"This is being run under Tiny Basic V2.3\"",CR
         dw      3040
-        db      'PR.:IN."TYPE anything TO END PROGRAM",D',CR
+        db      "PR.:IN.\"TYPE anything TO END PROGRAM\",D",CR
         dw      3050
-        db      'PR."Have fun!!.....J Lum  4/25/92"',CR
+        db      "PR.\"Have fun!!.....J Lum  4/25/92\"",CR
         dw      3060
-        db      'END',CR
+        db      "END",CR
 	DB	80H		;Marks end of program.
 ;
 	END
