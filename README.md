@@ -9,3 +9,8 @@ Using extract c51v960a.exe in C51\bin
 Using ml_asm51.zip
 
 ```ASM51 TB51ML23.ASM```
+
+### Macro Assembler AS V1.42
+* http://john.ccac.rwth-aachen.de:8000/as/download.html
+* https://github.com/begoon/asl
+
