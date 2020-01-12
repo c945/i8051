@@ -73,7 +73,6 @@ MLCALL_ MACRO
         ANL     PSW,#11100111B
         ENDM
 
-
 ;$ERRORPRINT TITLE(MCS-51(TM) TINY BASIC INTERPRETER 8/26/80)
 ;
 ;	TINY BASIC INTERPRETER PROGRAM  (CREATED 3/10/80   JHW)
@@ -339,7 +338,7 @@ BAUDID:	DJNZ	R0,$
 	JNB	RXD,$
 	SETB	TR1
 	CALL	STROUT
-        DB      CR,"MCS-51 TINY BASIC/Metalink-Compatible Source V"
+        DB      CR,"MCS-51 TINY BASIC/AS Porting from TB51ML23.ZIP V"
         DB      ('0'+VERS/10H),".",('0'+(VERS AND 0FH)),(CR OR  80H)
 	JMP	START
 ;
@@ -3013,17 +3012,25 @@ REL_6:	CLR	C
 	RET
 ;
 INTROM:				;Start of ROM program buffer.
+
+DW_	MACRO	DATA		;swaped DW macro
+	DB	(DATA >> 8)
+	DB	(DATA & 0ffh)
+	ENDM
+
 ;$INCLUDE(TBACEY.SRC)
-        dw      2101
-        db      "PR.\"Hello\"",CR
-        dw      2102
-        db      "PR.\"This is being run under Tiny Basic V2.3\"",CR
-        dw      3040
-        db      "PR.:IN.\"TYPE anything TO END PROGRAM\",D",CR
-        dw      3050
-        db      "PR.\"Have fun!!.....J Lum  4/25/92\"",CR
-        dw      3060
-        db      "END",CR
+	DW_	10
+	db	"FOR I=1 TO 9",CR
+	DW_	20
+	db	"FOR J=1 TO 9",CR
+	DW_	30
+	db	"PRINT I*J,",CR
+	DW_	40
+	db	"NEXT J",CR
+	DW_	50
+	db	"PRINT",CR
+	DW_	60
+	db	"NEXT I",CR
 	DB	80H		;Marks end of program.
 ;
 	END
