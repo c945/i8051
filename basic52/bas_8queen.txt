@@ -1,0 +1,71 @@
+1      REM ################################
+
+
+
+2      REM 8Queen
+3      REM Nov. 2012 / Yoshi
+4      REM ################################
+10     REM init
+20    TRUE=(0=0)
+30    FALSE=(0=1)
+40    N=0 : rem pattern
+50    D=0 : rem debug level
+60     FOR Y=1 TO 8
+70    A(Y)=0       : REM init array
+80     NEXT Y
+100    REM
+110    REM main routine
+120    REM
+130   S=1
+140    FOR Y=1 TO 8
+150    FOR X=S TO 8
+160   YY=Y : XX=X :  GOSUB 1000 :  REM check
+170    IF CHK=FALSE THEN  GOTO 220 :  REM end if
+180   A(Y)=X
+190   X=8
+200   S=1
+210    REM gosub 2000
+220    REM end if
+230    NEXT X
+240    IF CHK=TRUE THEN  GOTO 330 :  REM end if
+250   S=A(Y-1)+1
+260   A(Y-1)=0
+270   Y=Y-2
+280    IF S<9 THEN  GOTO 320 :  REM end if
+290   S=A(Y)+1
+300   A(Y)=0
+310   Y=Y-1
+320    REM end if
+330    REM end if
+340    IF D>=1 THEN  GOSUB 2000
+350    NEXT Y
+360    N=N+1
+370    GOSUB 2000
+390    REM
+900    STOP
+990    REM =====================================
+1000   REM check : pos(x,y)
+1010   IF D>=2 THEN  PRINT "(",X,",",Y,")"
+1020  CHK=TRUE
+1030   IF Y=1 THEN  GOTO 1100 :  REM end if
+1040   FOR YY=1 TO Y-1
+1050   IF A(Y-YY)=X THEN CHK=FALSE
+1060   IF A(Y-YY)=X+YY THEN CHK=FALSE
+1070   IF A(Y-YY)=X-YY THEN CHK=FALSE
+1080   IF CHK=FALSE THEN YY=Y
+1090   NEXT YY
+1100   REM endif
+1110   RETURN
+1120   REM
+1990   REM ======================================
+2000   REM print array
+2010   PRINT "--",N,"--"
+2020   IF D>=2 THEN  PRINT "(",X,",",Y,")","S:",S
+2030   FOR YY=1 TO 8
+2040   FOR XX=1 TO 8
+2050   IF A(YY)=XX THEN  PRINT "|X", ELSE  PRINT "| ",
+2060   NEXT XX
+2070   PRINT "|"
+2080   NEXT YY
+2090   RETURN
+2100   REM
